@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import serial
+import logging
 import os
 import time
-from datetime import datetime as dt
 
-import logging
+import serial
 
 log = logging.getLogger(__name__)
 
@@ -51,8 +50,8 @@ class Stepper(object):
         rpm = 60000. / dts
         p = rpm / 4 * self.lvl
         self.w += p * dt
-        kal = self.w * self.m * 8.92 
-        data = dict(steps=self.steps, time=int(now), level=self.lvl, rpm=rpm, p=p, w=self.w, kal=kal)
+        cal = self.w / 3600 * 860.42
+        data = dict(steps=self.steps, time=int(now), level=self.lvl, rpm=rpm, p=p, w=self.w, cal=cal)
         if self.fn:
             self.fn(data)
 

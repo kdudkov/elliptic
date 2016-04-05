@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import time
-import os
-from datetime import datetime as dt
-import threading
 import logging
+import os
+import threading
+import time
+from datetime import datetime as dt
 
 import pygame
 
@@ -18,8 +18,10 @@ log = logging.getLogger(__name__)
 class Main(object):
     running = True
     widgets = []
+    x = 0
+    y = 0
     file = None
-    keys = 'time,level,steps,rpm,p,w,kal'.split(',')
+    keys = 'time,level,steps,rpm,p,w,cal'.split(',')
 
     def __init__(self):
         self.screen = pygame.display.set_mode((1024, 768))
@@ -32,14 +34,32 @@ class Main(object):
 
         self.stepper = Stepper(102, fn=self.got_data)
 
-        y = 0
-        self.widgets.append(LevelBar(self.data, x=0, y=y))
-        self.widgets.append(Digit(self.data, 'rpm', '%.1f', x=256, y=y))
+        self.add_new(LevelBar())
+        self.add_new(Digit('rpm', '%.1f', label='RPM'))
+        self.add_new(TimeDigit())
 
-        y += 256
-        self.widgets.append(TimeDigit(self.data, x=0, y=y))
-        self.widgets.append(Digit(self.data, 'steps', '%.d', x=256, y=y))
-        self.widgets.append(Digit(self.data, 'p', u'%.1f Вт', x=512, y=y))
+        self.add_new_row(Digit('steps', '%.d', label='Steps'))
+        self.add_new(Digit('p', u'%.1f', label='Wt'))
+        self.add_new(Digit('cal', u'%.0f'))
+
+    def add_new(self, widget):
+        self.widgets.append(widget)
+        widget.data = self.data
+        if self.x + widget.w > self.screen.get_width():
+            self.x = 0
+            self.y += widget.h
+        widget.x = self.x
+        widget.y = self.y
+        self.x += widget.w
+
+    def add_new_row(self, widget):
+        self.widgets.append(widget)
+        self.x = 0
+        self.y += widget.h
+        widget.data = self.data
+        widget.x = self.x
+        widget.y = self.y
+        self.x += widget.w
 
     def got_data(self, d):
         log.debug('got data %s', d)
