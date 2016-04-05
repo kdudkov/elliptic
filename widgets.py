@@ -23,6 +23,7 @@ def mid_text(surf, font, text, color, bgcolor, btw=2):
 
 class Widget(object):
     bg_color = (10, 10, 10)
+    last_data = None
 
     def __init__(self, x=0, y=0, w=256, h=256):
         self.x = x
@@ -30,11 +31,20 @@ class Widget(object):
         self.w = w
         self.h = h
 
-    def draw(self):
+    def get_data(self):
+        return None
+
+    def draw(self, force=False):
+        val = self.get_data()
+        if force or val != self.last_data:
+            self.last_data = val
+            return self.get_surface(val)
+        return None
+
+    def get_surface(self, val):
         pass
 
     def put(self, scr):
-        scr.fill(self.bg_color, (self.x, self.y, self.w, self.h))
         surf = self.draw()
         if surf:
             scr.blit(surf, (self.x, self.y))
@@ -50,14 +60,11 @@ class Digit(Widget):
         self.font = pygame.font.Font('fonts/trench100free.ttf', 72)
         Widget.__init__(self, x, y, w, h)
 
-    def draw(self):
-        x = 5
-        y = 5
+    def get_data(self):
+        return self.frm % self.data[self.key] if self.key in self.data else '?'
+
+    def get_surface(self, val):
         s = pygame.Surface((self.w, self.h))
-        if self.key in self.data:
-            val = self.frm % self.data[self.key]
-        else:
-            val = '?'
         s.fill(self.bg_color)
         mid_text(s, self.font, [self.key, val], self.color, self.bg_color)
         return s
@@ -71,13 +78,14 @@ class TimeDigit(Widget):
         self.font = pygame.font.Font('fonts/trench100free.ttf', 72)
         Widget.__init__(self, x, y, w, h)
 
-    def draw(self):
-        x = 5
-        y = 5
-        s = pygame.Surface((self.w, self.h))
+    def get_data(self):
         t = self.data['sum_time']
+        return '%d:%02d' % (int(t / 60), t % 60)
+
+    def get_surface(self, val):
+        s = pygame.Surface((self.w, self.h))
         s.fill(self.bg_color)
-        mid_text(s, self.font, ['Time', '%d:%02d' % (int(t/60), t % 60)], self.color, self.bg_color)
+        mid_text(s, self.font, ['Time', val], self.color, self.bg_color)
         return s
 
 
@@ -90,7 +98,13 @@ class LevelBar(Widget):
         self.font = pygame.font.Font('fonts/trench100free.ttf', 128)
         Widget.__init__(self, x, y, w, h)
 
-    def draw(self):
+    def get_data(self):
+        return self.data.get('level', 1)
+
+    def get_surface(self, val):
+        s = pygame.Surface((self.w, self.h))
+        s.fill(self.bg_color)
+
         margin = 10
         btw = 4
 
@@ -99,10 +113,6 @@ class LevelBar(Widget):
 
         x = margin * 4
         y = self.h - margin - h
-
-        val = self.data.get('level', 1)
-        s = pygame.Surface((self.w, self.h))
-        s.fill(self.bg_color)
         for i in range(16):
             if i < val:
                 pygame.draw.rect(s, DARK_BLUE, (x, y, w, h), 0)
