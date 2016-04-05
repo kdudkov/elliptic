@@ -69,7 +69,7 @@ class Main(object):
             self.data['sum_time'] = self.data['sum_time'] + (now - self.last_data)
         self.last_data = now
         if self.file:
-            self.file.write(','.join((self.data.get(x, '') for x in self.keys)) + '\n')
+            self.file.write(','.join((str(self.data.get(x, '')) for x in self.keys)) + '\n')
 
     def run(self):
         self.thread = threading.Thread(target=self.stepper.run)
