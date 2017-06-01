@@ -1,3 +1,4 @@
+#include <Energia.h>
 
 #define PIN P2_3
 #define PIN_IN P2_5
@@ -9,6 +10,31 @@ volatile unsigned int dt = 0;
 
 byte lvl = 1;
 boolean in_read = false;
+
+byte read_data() {
+    byte res = 0;
+    delay(4);
+    for(byte i=0; i<5; i++) {
+        long l = millis();
+        byte a = digitalRead(PIN_IN);
+        res = (res << 1) + a;
+        delay(10 - (millis()-l));
+    }
+    return res + 1;
+}
+
+void int_() {
+  unsigned long p = prev;
+  if (millis() - p > 200) {
+    state = ! state;
+    digitalWrite(RED_LED, state);
+    prev = millis();
+    if (p != 0) {
+      got_data = true;
+      dt = prev - p;
+    }
+  }
+}
 
 void setup() {
   Serial.begin(9600);
@@ -34,29 +60,4 @@ void loop() {
         }
         delay(10);
     }
-}
-
-byte read_data() {
-    byte res = 0;
-    delay(4);
-    for(byte i=0; i<5; i++) {
-        long l = millis();
-        byte a = digitalRead(PIN_IN);
-        res = (res << 1) + a;
-        delay(10 - (millis()-l));
-    }
-    return res + 1;
-}
-
-void int_() {
-  unsigned long p = prev;
-  if (millis() - p > 200) {
-    state = ! state;
-    digitalWrite(RED_LED, state);
-    prev = millis();
-    if (p != 0) {
-      got_data = true;
-      dt = prev - p;
-    }
-  }
 }
